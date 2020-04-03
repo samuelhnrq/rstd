@@ -1,24 +1,30 @@
-use log::{trace, error};
+use log::{error, trace};
 use serde::{Deserialize, Serialize};
 use serde_yaml::from_reader;
-use std::env;
-use std::fs::File;
+use std::{
+    fs::{create_dir_all, File},
+    path::PathBuf,
+};
+use dirs::{config_dir, data_dir};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ConfigFile {
-    color: bool,
-    storage_location: String,
+    pub color: bool,
+    pub storage_location: PathBuf,
 }
 
-fn config_root() -> String {
-    let def_loc = String::from("~/.config");
-    env::var("XDG_USER_DIR").unwrap_or(def_loc) + "/rstd"
+fn config_root() -> PathBuf {
+    let loc = config_dir().or(data_dir()).unwrap().join("rstd");
+    if !loc.exists() {
+        create_dir_all(&loc).expect(&format!("Could not create the config dir {:?}", loc));
+    }
+    loc
 }
 
 impl ConfigFile {
     pub fn initialize() -> Self {
         let default = ConfigFile::default();
-        let loc = config_root() + "/config.yml";
+        let loc = config_root().join("/config.yml");
         match File::open(loc) {
             Ok(file) => {
                 trace!("Config file found!");
@@ -47,7 +53,7 @@ impl Default for ConfigFile {
     fn default() -> Self {
         ConfigFile {
             color: false,
-            storage_location: config_root() + "/storage.yml",
+            storage_location: config_root().join("storage.db"),
         }
     }
 }

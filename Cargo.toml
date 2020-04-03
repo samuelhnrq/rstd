@@ -9,8 +9,10 @@ edition = "2018"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 chrono = { version = "0.4", features = ["serde"] }
-diesel = { version = "1.4", features = ["sqlite", "chrono"] }
 fern = { version = "0.6", features = ["colored"] }
+diesel = { version = "1.4", features = ["sqlite", "chrono"] }
+diesel_migrations = "1.4"
 serde_yaml = "0.8"
+dirs = "2.0.2"
 clap = "2.33"
 log = "0.4"
