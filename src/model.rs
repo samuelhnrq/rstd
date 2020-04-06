@@ -18,7 +18,12 @@ pub struct NewTodo<'a> {
     pub created_at: NaiveDateTime,
 }
 
+// Bruh lifetimes are great conceptually but confusing to use
+// apparrently I can't have a lifetime called 'a here too because
+// it's already defined, but I can't use it still because it's not
+// in scope
 impl<'b> NewTodo<'b> {
+    /// Creates a new todo not completed and now
     pub fn new(description: &'b str) -> Self {
         NewTodo {
             title: description,

@@ -1,3 +1,4 @@
+use dirs::{config_dir, data_dir};
 use log::{error, trace};
 use serde::{Deserialize, Serialize};
 use serde_yaml::from_reader;
@@ -5,7 +6,6 @@ use std::{
     fs::{create_dir_all, File},
     path::PathBuf,
 };
-use dirs::{config_dir, data_dir};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ConfigFile {
@@ -25,14 +25,18 @@ impl ConfigFile {
     pub fn initialize() -> Self {
         let default = ConfigFile::default();
         let loc = config_root().join("/config.yml");
+        // All these fancy pants safe error handling, pattern matches, so that we
+        // may achieve a fancier looking IF
         match File::open(loc) {
             Ok(file) => {
                 trace!("Config file found!");
                 match from_reader(file) {
+                    // Found and parsed.
                     Ok(cfg) => {
                         trace!("Config loaded sucessfully");
                         cfg
                     }
+                    // found & could't be parsed. Gotta be loud here.
                     Err(e) => {
                         error!("Could not parse config. (Error: {})", e);
                         error!("Failing back to default:\n{:?}", default);
@@ -40,6 +44,7 @@ impl ConfigFile {
                     }
                 }
             }
+            // not found can't fail to parse, use default
             Err(e) => {
                 trace!("Config file not found. Error: {}", e);
                 trace!("Loading default: {:?}", default);

@@ -1,7 +1,7 @@
 use config::ConfigFile;
 use diesel::{prelude::*, SqliteConnection};
 use diesel_migrations::{find_migrations_directory, run_pending_migrations_in_directory};
-use log::{error, info, trace};
+use log::{error, info, trace, debug};
 use model::Todo;
 use schema::todo::dsl::*;
 
@@ -18,6 +18,8 @@ mod logger;
 mod model;
 mod schema;
 
+// Because SQLite, what's the fun in using sqlite other than 
+// having completly and easily bootstrap-able databases?
 embed_migrations!();
 
 fn initialize_db(c: &ConfigFile) -> SqliteConnection {
@@ -33,11 +35,12 @@ fn initialize_db(c: &ConfigFile) -> SqliteConnection {
 
 fn main() -> std::io::Result<()> {
     let args = arguments::initialize_args();
-    info!("Argumentos: {:?}", args);
+    trace!("Arguments parsed: {:?}", args);
     logger::initialize(&args);
     let c = ConfigFile::initialize();
-    info!("Config e log inicializado! {:?}", c);
+    debug!("Config e logging intialized! {:?}", c);
     let conn = initialize_db(&c);
+    // This will eventually get huge.
     match args.subcommand() {
         ("create", Some(create)) => crud::create_task(&create, &conn),
         _ => {
