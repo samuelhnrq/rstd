@@ -1,7 +1,7 @@
 use config::ConfigFile;
-use diesel::{SqliteConnection, prelude::*};
-use diesel_migrations::{run_pending_migrations_in_directory, find_migrations_directory};
-use log::{info, error, trace};
+use diesel::{prelude::*, SqliteConnection};
+use diesel_migrations::{find_migrations_directory, run_pending_migrations_in_directory};
+use log::{error, info, trace};
 use model::Todo;
 use schema::todo::dsl::*;
 
@@ -12,6 +12,7 @@ extern crate diesel_migrations;
 
 mod arguments;
 mod config;
+mod crud;
 mod database;
 mod logger;
 mod model;
@@ -25,18 +26,24 @@ fn initialize_db(c: &ConfigFile) -> SqliteConnection {
     let mut void = std::io::sink();
     match run_pending_migrations_in_directory(&conn, &migrations_loc, &mut void) {
         Err(e) => error!("Error running database migrations!!! {}", e),
-        Ok(_) => trace!("Migrations ran successfully.")
+        Ok(_) => trace!("Migrations ran successfully."),
     };
     conn
 }
 
 fn main() -> std::io::Result<()> {
     let args = arguments::initialize_args();
-    logger::initialize(args);
+    info!("Argumentos: {:?}", args);
+    logger::initialize(&args);
     let c = ConfigFile::initialize();
-    let conn = initialize_db(&c);
-    let todos = todo.limit(4).load::<Todo>(&conn).unwrap();
     info!("Config e log inicializado! {:?}", c);
-    info!("Lista de todos {:?}", todos);
+    let conn = initialize_db(&c);
+    match args.subcommand() {
+        ("create", Some(create)) => crud::create_task(&create, &conn),
+        _ => {
+            let todos = todo.limit(4).load::<Todo>(&conn).unwrap();
+            info!("Lista de todos {:?}", todos);
+        }
+    }
     Ok(())
 }

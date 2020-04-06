@@ -3,10 +3,10 @@ use fern::{
     colors::{Color, ColoredLevelConfig},
     Dispatch,
 };
-use log::{error, trace};
 use log::LevelFilter;
+use log::{error, trace};
 
-pub fn initialize<'a>(args: ArgMatches<'a>) {
+pub fn initialize<'a>(args: &ArgMatches<'a>) {
     let lvl = match args.occurrences_of("v") {
         1 => LevelFilter::Debug,
         2 => LevelFilter::Trace,
